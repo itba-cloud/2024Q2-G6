@@ -63,9 +63,7 @@ resource "aws_rds_cluster" "aurora" {
   }
 
   depends_on = [
-    aws_security_group.aurora_sg,
-    aws_db_subnet_group.aurora,
-    aws_rds_cluster_parameter_group.aurora_parameter_group,
+    aws_rds_cluster_parameter_group.aurora_parameter_group
   ]
 
   lifecycle {
