@@ -13,9 +13,8 @@ export default function Home({isLogged}) {
     productDescription: "",
   })
   const [addBooking, setAddBooking] = useState({
-    userId: "", 
-    amount: "",
     productId: "",
+    amount: "",
   })
   const [addBookingResponse, setAddBookingResponse] = useState(null)
   const [addResponse, setAddResponse] = useState(null)

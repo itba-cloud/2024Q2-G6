@@ -4,13 +4,28 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
+	"time"
 )
 
-// Helper function to execute shell commands
+func asyncPingLambda(url string) {
+	go func() {
+		client := &http.Client{
+			Timeout: 2 * time.Second, // Timeout after 2 seconds
+		}
+
+		req, _ := http.NewRequest("GET", url, nil)
+		_, err := client.Do(req)
+
+		if err != nil {
+			fmt.Errorf("failed to perform GET %s", err)
+		}
+	}()
+}
+
 func runCommand(dir string, name string, args ...string) error {
 	cmd := exec.Command(name, args...)
 	cmd.Stdin = os.Stdin
@@ -22,21 +37,17 @@ func runCommand(dir string, name string, args ...string) error {
 	return cmd.Run()
 }
 
-// Function to run npm commands for frontend
 func buildFrontend(frontendDir string) error {
 	fmt.Println("Building frontend...")
 
-	// Run 'npm install'
 	if err := runCommand(frontendDir, "npm", "install"); err != nil {
 		return fmt.Errorf("failed to install frontend dependencies: %w", err)
 	}
 
-	// Run 'npm run build'
 	if err := runCommand(frontendDir, "npm", "run", "build"); err != nil {
 		return fmt.Errorf("failed to build frontend: %w", err)
 	}
 
-	// Run 'npm run export'
 	if err := runCommand(frontendDir, "npm", "run", "export"); err != nil {
 		return fmt.Errorf("failed to export frontend: %w", err)
 	}
@@ -44,13 +55,11 @@ func buildFrontend(frontendDir string) error {
 	return nil
 }
 
-// Function to check if a file or directory exists
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
 }
 
-// Helper function to run npm install in a directory
 func npmInstall(dir string) error {
 	fmt.Printf("Running npm install in %s\n", dir)
 	cmd := exec.Command("npm", "install")
@@ -61,24 +70,18 @@ func npmInstall(dir string) error {
 	return cmd.Run()
 }
 
-// Function to iterate over top-level subdirectories and run npm install if package.json exists
 func installDependenciesInTopLevelDirs(root string) error {
-	// Get all files and directories in the root directory
 	files, err := ioutil.ReadDir(root)
 	if err != nil {
 		return fmt.Errorf("failed to read directory %s: %w", root, err)
 	}
 
-	// Loop over the entries
 	for _, file := range files {
-		// Check if the entry is a directory
 		if file.IsDir() {
 			dirPath := filepath.Join(root, file.Name())
 
-			// Check if the directory contains a package.json file
 			packageJSON := filepath.Join(dirPath, "package.json")
 			if fileExists(packageJSON) {
-				// Run npm install in this directory
 				if err := npmInstall(dirPath); err != nil {
 					return fmt.Errorf("failed to install dependencies in %s: %w", dirPath, err)
 				}
@@ -89,7 +92,6 @@ func installDependenciesInTopLevelDirs(root string) error {
 	return nil
 }
 
-// Function to install dependencies for lambdas
 func installLambdaDependencies() error {
 	fmt.Println("Installing Lambda dependencies...")
 	lambdasDir := "./iac/lambda/api"
@@ -109,11 +111,6 @@ func installLambdaDependencies() error {
 	fmt.Println("Dependencies installed successfully in all subdirectories.")
 
 	return nil
-}
-
-// Function to determine if we're on Windows or Unix
-func isWindows() bool {
-	return runtime.GOOS == "windows"
 }
 
 // Function to run Terraform with pre-build tasks
@@ -158,7 +155,7 @@ func writeEnvFile(envFilePath string, envs map[string]string) {
 
 }
 
-func outputFrontendEnvs(envFilePath string) {
+func outputFrontendEnvs(envFilePath string) map[string]string {
 	envs := make(map[string]string)
 
 	envs["API_BASE"] = getTerraformOutputValue("api_gateway_url")
@@ -168,6 +165,8 @@ func outputFrontendEnvs(envFilePath string) {
 	envs["AUTH_URL"] = getTerraformOutputValue("cognito_auth_url")
 
 	writeEnvFile(envFilePath, envs)
+
+	return envs
 
 }
 
@@ -203,7 +202,9 @@ func main() {
 
 		envFile := fmt.Sprintf("%s/.env.local", frontendDir)
 
-		outputFrontendEnvs(envFile)
+		envs := outputFrontendEnvs(envFile)
+
+		asyncPingLambda(fmt.Sprintf("%s/products", envs["API_BASE"]))
 
 		if err := buildFrontend(frontendDir); err != nil {
 			log.Fatalf("Error: %v", err)

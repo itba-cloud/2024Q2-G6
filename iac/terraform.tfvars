@@ -4,7 +4,7 @@ db_user = "username"
 
 nextjs_export_directory = "../frontend/out"
 
-domain_name = "mycustomdomain3"
+domain_name = "pickitup-cloud"
 
 region = "us-east-1"
 
