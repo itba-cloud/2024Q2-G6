@@ -14,9 +14,9 @@ import (
 func asyncPingLambda(url string) {
 	go func() {
 		client := &http.Client{
-			Timeout: 2 * time.Second, // Timeout after 2 seconds
+			Timeout: 5 * time.Second, // Timeout after 2 seconds
 		}
-
+		fmt.Printf("Pinging %s\n", url)
 		req, _ := http.NewRequest("GET", url, nil)
 		_, err := client.Do(req)
 
@@ -204,7 +204,7 @@ func main() {
 
 		envs := outputFrontendEnvs(envFile)
 
-		asyncPingLambda(fmt.Sprintf("%s/products", envs["API_BASE"]))
+		go asyncPingLambda(fmt.Sprintf("%s/products", envs["API_BASE"]))
 
 		if err := buildFrontend(frontendDir); err != nil {
 			log.Fatalf("Error: %v", err)
