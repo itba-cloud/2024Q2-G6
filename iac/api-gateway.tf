@@ -13,4 +13,5 @@ module "product_api_gateway" {
   }
   cognito_user_pool_id = aws_cognito_user_pool.product_users.id
   cognito_audience     = [aws_cognito_user_pool_client.product_users.id]
+  depends_on = [aws_lambda_function.api_action]
 }
