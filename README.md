@@ -65,6 +65,7 @@ Este módulo simplifica el despliegue de un API Gateway utilizado para una API H
 - Se utiliza en ```s3.tf``` y en ```web-app/storage.tf``` para crear adjuntar la policy de los buckets una vez que se habilita esta posibilidad en la configuración pública del mismo. 
 ### lifecycle
 - Agrega una capa de seguridad extra en ```database.tf``` para evitar borrados accidentales del inventario de los clientes.
+
 ## Descripción de funciones
 ### fileset
 - Se utiliza en ```datasources.tf``` para poder iterar sobre los distintos archivos del directorio que contieenen las funciones lambda.
