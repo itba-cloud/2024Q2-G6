@@ -9,6 +9,7 @@ const nextConfig = {
     AUTH_URL:  process.env.AUTH_URL
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",

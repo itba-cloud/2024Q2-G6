@@ -63,7 +63,7 @@ export default function HomePage({isLogged}) {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Our Products</h1>
-      <Button onClick={() => setShowNewProductForm(!showNewProductForm)} className="mb-6">
+      <Button onClick={() => setShowNewProductForm(!showNewProductForm)} className="mb-6 bg-slate-700">
         {showNewProductForm ? 'Hide New Product Form' : 'Add New Product'}
       </Button>
       {showNewProductForm && <NewProductForm onSubmit={handleNewProduct} />}

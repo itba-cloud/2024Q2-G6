@@ -63,7 +63,7 @@ export default function Item({ product, isAdmin, onDelete}) {
           <span className="sr-only">Delete product</span>
         </Button>
       )}
-        <p className="text-gray-600 mb-2">{product.description}</p>
+        <p className="text-gray-300 mb-2">{product.description}</p>
         <div className="flex justify-between items-center mb-4">
           <span className="text-lg font-bold">${product.price}</span>
           <span className={`text-sm ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>

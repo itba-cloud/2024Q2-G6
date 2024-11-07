@@ -12,7 +12,7 @@ import {
 
 
 
-export default function Navbar({ logoutFunction, isLogged }) {
+export default function Navbar({ logoutFun, isLogged }) {
   return (
     <nav className="bg-background border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,7 +33,7 @@ export default function Navbar({ logoutFunction, isLogged }) {
           <div className="hidden md:flex items-center space-x-4">
             {/* <ThemeToggle /> */}
             {isLogged ? (
-              <Button onClick={logoutFunction} variant="outline" className="text-foreground border-foreground hover:bg-accent hover:text-accent-foreground">
+              <Button onClick={logoutFun} variant="outline" className="text-foreground border-foreground hover:bg-accent hover:text-accent-foreground">
                 Logout
               </Button>
             ) : (
