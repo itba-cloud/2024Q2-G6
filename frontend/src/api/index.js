@@ -22,7 +22,11 @@ axiosInstance.interceptors.request.use((config) => {
 
 class ApiClient {
 
-  static async request(method, path, body, headers) {
+  constructor(toast) {
+    this.toast = toast
+  }
+
+  async request(method, path, body, headers) {
     try {
       const response = await axiosInstance({
         method,
@@ -30,34 +34,41 @@ class ApiClient {
         headers: headers ? headers : {"Content-Type": "application/json"},
         data: body,
       });
+
       return { error: false, data: response.data };
     } catch (error) {
       console.error(error);
+      if (this.toast) {
+        this.toast({
+          title: "Error",
+          description: `${error.message}`
+        })
+      }
       return { error: true, data: { message: error.message } };
     }
   }
 
-  static async getProducts() {
+  async getProducts() {
     return await this.request("GET", "/products");
   }
 
-  static async getBookings() {
+  async getBookings() {
     return await this.request("GET", "/bookings");
   }
 
-  static async addProduct(data) {
+  async addProduct(data) {
     return await this.request("POST", `/products`, data);
   }
 
-  static async bookProduct(id, data) {
+  async bookProduct(id, data) {
     return await this.request("POST", `/products/${id}/bookings`, data);
   }
 
-  static async deleteProduct(id) {
+  async deleteProduct(id) {
     return await this.request("DELETE", `/products/${id}`);
   }
 
-  static async addImage(id, data) {
+  async addImage(id, data) {
     return await this.request("PUT", `/products/${id}/image`, data,  {"Content-Type": "multipart/form-data"});
   }
 

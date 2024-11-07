@@ -8,6 +8,14 @@ const nextConfig = {
     REDIRECT_URI:  process.env.REDIRECT_URI,
     AUTH_URL:  process.env.AUTH_URL
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
+  },
 };
 
 module.exports = nextConfig;

@@ -1,11 +1,13 @@
 import '/src/styles/globals.css'
-import '/src/styles/custom.css'
 import Navbar from '@components/Navbar'
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { Toaster } from '@/components/ui/toaster';
 import {REDIRECT_URI, LOGIN_CLIENT_ID, AUTH_URL} from 'src/constants'
 import qs from 'qs'
 import axios from 'axios';
+import Footer from '@components/Footer';
+
 
 export default function App({ Component, pageProps }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -64,10 +66,13 @@ export default function App({ Component, pageProps }) {
     }
 }, [router.isReady, router.query]);
 
-  return <div className='w-full bg-primary min-h-screen flex flex-col'>
+  return <div className='w-full min-h-screen flex flex-col'>
     <Navbar isLogged={isLoggedIn} logoutFun={logoutFun}/>
-    <main className='w-full flex-1 flex'>
+    <main className='w-full flex-1 flex bg-slate-800'>
     <Component {...pageProps} isLogged={isLoggedIn} />
     </main>
+    <Toaster className='top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'></Toaster>
+    <Footer></Footer>
   </div>
+
 }

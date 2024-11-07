@@ -1,181 +1,77 @@
-import Head from 'next/head'
-import ActionButton from '@components/ItemAction'
-import { useState } from 'react';
+import { useState, useEffect } from 'react'
+import Item from '@components/Item'
+import NewProductForm from '@components/NewProductForm'
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast";
+import ApiClient from "../api"
+import { RefreshCcw } from 'lucide-react';
 
-import ApiClient from 'src/api';
+export default function HomePage({isLogged}) {
+  const [products, setProducts] = useState([])
+  const [refresh, setRefresh] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [showNewProductForm, setShowNewProductForm] = useState(false)
+  const { toast } = useToast()
+  const apiClient = new ApiClient(toast)
 
-export default function Home({isLogged}) {
-
-  const [addItem, setAddItem] = useState({
-    productName: "", 
-    productPrice: "",
-    productStockAmount: "",
-    productDescription: "",
-  })
-  const [addBooking, setAddBooking] = useState({
-    productId: "",
-    amount: "",
-  })
-  const [addBookingResponse, setAddBookingResponse] = useState(null)
-  const [addResponse, setAddResponse] = useState(null)
-  const [getItems, setGetItems] = useState([]);
-  const [getItemsBooked, setGetItemsBooked] = useState([]);
-  const [deleteItemId, setDeleteItemId] = useState({
-    id: ""
-  });
-  const [deleteResponse, setDeleteResponse] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
-
-  const handleAdd = async () => {
-    try {
-      const response = await ApiClient.addProduct(addItem)
-      const data = response.data
-      setAddResponse(data);
-      await addImage(data.id)
-      setAddItem({
-        productName: "", 
-        productPrice: "",
-        productStockAmount: "",
-        productDescription: "",
-      })
-    } catch (error) {
-      console.error('Error adding item:', error)
-    }
-  }
-
-  const handleAddBookings = async () => {
-    try {
-      const response = await ApiClient.bookProduct(addBooking.productId, addBooking);
-      const data = response.data
-      setAddBookingResponse(data);
-      console.log('Added item:', data);
-      setAddBooking({
-        productId: "",
-        amount: "",
-      })
-    } catch (error) {
-      console.error('Error adding item:', error)
-    }
-  }
-
-  const handleGet = async () => {
-    try {
-      const response = await ApiClient.getProducts();
-      const data = response.data;
-      setGetItems(data.products)
-      console.log('Fetched items:', data);
-    } catch (error) {
-      console.error('Error fetching items:', error);
-    }
-  };
-
-  const handleGetBookings = async () => {
-    try {
-      const response = await ApiClient.getBookings();
-      const data = response.data;
-      setGetItemsBooked(data.products)
-      console.log('Fetched items:', data);
-    } catch (error) {
-      console.error('Error fetching items:', error);
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      const response = await ApiClient.deleteProduct(deleteItemId.id);
-      if (!response.error) {
-        setDeleteResponse({ success: true, id: deleteItemId.id });
-        console.log('Deleted item with ID:', deleteItemId);
-        setDeleteItemId({id: ""})
-      } else {
-        throw new Error('Failed to delete item');
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const data = await apiClient.getProducts()
+        setProducts(data.data.products)
+        setLoading(false)
+      } catch (err) {
+        setError('Failed to fetch products')
+        setLoading(false)
       }
-    } catch (error) {
-      console.error('Error deleting item:', error);
     }
-  };
 
-  const addImage = async (id) => {
-    try {
-      const formData = new FormData();
-      formData.append('image', selectedImage);
-      await ApiClient.addImage(id,formData);
-      setSelectedImage(null)
-    } catch (error) {
-      console.error('Error fetching items:', error);
-    }
-  };
+    fetchProducts()
+  }, [refresh])
+
+  const handleDeleteProduct = async (id) => {
+    // This is where you'd normally send the new product to your API
+    // For now, we'll just add it to the local state
+    const data = await apiClient.deleteProduct(id)
+    if (data.error)
+      return data
+    setRefresh(!refresh)
+    setShowNewProductForm(false)
+    return data
+  }
+
+  const handleNewProduct = async (newProduct, productImage) => {
+    // This is where you'd normally send the new product to your API
+    // For now, we'll just add it to the local state
+    const formData = new FormData();
+    formData.append('image', productImage);
+    const data = await apiClient.addProduct(newProduct)
+    await apiClient.addImage(data.data.id, formData)
+    setRefresh(!refresh)
+    toast({
+      title: "Product Added",
+      description: `${newProduct.productName} has been added to the product list.`,
+    })
+    setShowNewProductForm(false)
+    return data
+  }
+
+  if (loading) return <div className="container mx-auto px-4 py-8">Loading...</div>
+  if (error) return <div className="container mx-auto px-4 py-8">Error: {error}</div>
 
   return (
-    <>
-      <Head>
-        <title>Home</title>
-        <meta name="description" content="Generated by create next app" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <div className='flex flex-row w-screen'>
-        <ActionButton 
-          buttonText="Add product" 
-          buttonColor="#85c1e9" 
-          hasInput={true} 
-          onButtonClick={handleAdd} 
-          placeholder="Enter"
-          inputValue={addItem}
-          setInputValue={setAddItem}
-          addResponse={addResponse}
-          hasInputImage={true}
-          setSelectedImage={setSelectedImage}
-          isLogged={isLogged}
-        />
-        <ActionButton 
-          buttonText="Get products" 
-          buttonColor="#239b56" 
-          hasInput={false} 
-          onButtonClick={handleGet}
-          hasBorderLeft={true}
-          hasBorderRight={true}
-          getResponse={getItems}
-          isLogged={true}
-        />
-        <ActionButton 
-          buttonText="Delete product" 
-          buttonColor="#e74c3c" 
-          hasInput={true} 
-          onButtonClick={handleDelete}
-          placeholder="Enter"
-          inputValue={deleteItemId}
-          setInputValue={setDeleteItemId}
-          deleteResponse={deleteResponse}
-          isLogged={isLogged}
-        />
-
-        <ActionButton 
-          buttonText="Book product" 
-          buttonColor="#f39c12"
-          hasBorderLeft={true}
-          hasBorderRight={true}
-          hasInput={true} 
-          onButtonClick={handleAddBookings} 
-          placeholder="Enter"
-          inputValue={addBooking}
-          setInputValue={setAddBooking}
-          addResponse={addBookingResponse}
-          isLogged={isLogged}
-        />
-
-        <ActionButton 
-          buttonText="Get bookings" 
-          buttonColor="#a569bd" 
-          hasInput={false} 
-          onButtonClick={handleGetBookings}
-          hasBorderRight={true}
-          getResponse={getItemsBooked}
-          isGetBooking={true}
-          isLogged={isLogged}
-        />
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Our Products</h1>
+      <Button onClick={() => setShowNewProductForm(!showNewProductForm)} className="mb-6">
+        {showNewProductForm ? 'Hide New Product Form' : 'Add New Product'}
+      </Button>
+      {showNewProductForm && <NewProductForm onSubmit={handleNewProduct} />}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {products.map(product => (
+          <Item key={product.id} product={product} isAdmin={isLogged} onDelete={handleDeleteProduct} />
+        ))}
       </div>
-    </>
+    </div>
   )
 }
