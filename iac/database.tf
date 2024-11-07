@@ -66,10 +66,6 @@ resource "aws_rds_cluster" "aurora" {
     aws_rds_cluster_parameter_group.aurora_parameter_group
   ]
 
-  lifecycle {
-    prevent_destroy = true
-  }
-
   tags = {
     Name = "aurora-cluster"
   }
