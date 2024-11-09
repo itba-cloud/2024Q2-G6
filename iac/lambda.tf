@@ -44,7 +44,8 @@ resource "aws_lambda_function" "api_action" {
       DB_PORT     = "5432"
       DB_NAME     = var.db_name
       DB_USER     = var.db_user
-      DB_PASSWORD = random_password.db_password.result
+      SECRET_NAME = aws_secretsmanager_secret.db_credentials.name
+      REGION  = var.region
       IMAGES_BUCKET = aws_s3_bucket.item_images.id
       WEBSITE_URL = module.web_app_1.website_url
     }
