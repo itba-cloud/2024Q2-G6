@@ -33,7 +33,7 @@ Situado en la raíz del proyecto, corremos el siguiente ejecutable:
 - MacOS:
   ```./script-mac run```
 - Linux:
-  ```./script run```
+  ```./script-linux run```
 - Windows:
   ```./script.exe run```
 

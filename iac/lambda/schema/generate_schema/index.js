@@ -23,7 +23,7 @@ exports.handler = async (event) => {
                 id serial PRIMARY KEY,
                 name varchar(256) NOT NULL,
                 price numeric(10,2)  NOT NULL,
-                stock int  NOT NULL CHECK (stock > 0),
+                stock int  NOT NULL CHECK (stock >= 0),
                 description varchar(1000)  NOT NULL,
                 image_url varchar(256)
             );
@@ -41,10 +41,12 @@ exports.handler = async (event) => {
                 user_id varchar(256)  NOT NULL,
                 product_id int  NOT NULL,
                 quantity int NOT NULL,
+                pickup_date date NOT NULL, -- Stores the reservation date (YYYY-MM-DD)
+                pickup_hour int NOT NULL CHECK (pickup_hour BETWEEN 9 AND 17), -- Stores the hour (9 to 17)
                 reservation_date timestamp  NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 status varchar(256)  NOT NULL DEFAULT 'PENDING',
-                foreign key (user_id) references users(id),
-                foreign key (product_id) references product(id)
+                foreign key (user_id) references users(id) ON DELETE CASCADE,
+                foreign key (product_id) references product(id) ON DELETE CASCADE
             );
 
             -- Insert a user into the 'users' table

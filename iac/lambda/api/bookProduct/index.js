@@ -22,10 +22,12 @@ exports.handler = async (event) => {
     if (!event.body){
         return {
             statusCode: 400,
-            body: JSON.stringify({ message: "Request should have a body with fields productName, productPrice y productStockAmount are mandatory" }),
+            body: JSON.stringify({ message: "Request should have a body with booking details: date, hour and quantity" }),
         };
     }
-    const body = JSON.parse(event.body);
+
+
+    const body = event.body ? JSON.parse(event.body) : {};
 
     const userId = event.requestContext.accountId
 
@@ -50,19 +52,37 @@ exports.handler = async (event) => {
         };
     }
 
-    const { amount } = body;
 
-    if (!userId || !amount){
+    const { date, time, quantity } = body;
+
+    const reservationHour = parseInt(time, 10);
+    if (isNaN(reservationHour) || reservationHour < 9 || reservationHour > 17) {
         return {
             statusCode: 400,
-            body: JSON.stringify({ message: "Fields productName, productPrice y productStockAmount are mandatory" }),
+            body: JSON.stringify({ message: 'Invalid time. Time must be between 9 and 17.' }),
         };
     }
 
-    if ( amount <= 0 ){
+    // Ensure `date` is in the correct format (YYYY-MM-DD)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
         return {
             statusCode: 400,
-            body: JSON.stringify({ message: "Invalid body values" }),
+            body: JSON.stringify({ message: 'Invalid date format. Date must be in YYYY-MM-DD.' }),
+        };
+    }
+    
+
+    if (!userId || !date || !time || !quantity){
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ message: "Fields userId, date, hour and quantity are mandatory" }),
+        };
+    }
+
+    if ( quantity <= 0 ){
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ message: "Quantity can not be zero or a negative value" }),
         };
     }
 
@@ -76,10 +96,10 @@ exports.handler = async (event) => {
             };
         }
         stock = result.rows[0].stock;
-        if (stock < amount){
+        if (stock < quantity){
             return {
                 statusCode: 400,
-                body: JSON.stringify({ message: "Amount to book is greater than stock" }),
+                body: JSON.stringify({ message: "Quantity to book is greater than stock" }),
             };
         }
     } catch(error) {
@@ -89,9 +109,10 @@ exports.handler = async (event) => {
             body: JSON.stringify({ message: "Error booking product", error: error.message }),
         };
     }
+
     try {
         const query = `UPDATE product SET stock = stock - $2 WHERE id = $1`;
-        const result = await client.query(query, [id, amount]);
+        const result = await client.query(query, [id, quantity]);
         if (result.rowCount === 0) {
             return {
                 statusCode: 404,
@@ -107,8 +128,8 @@ exports.handler = async (event) => {
     }
 
     try{
-        const query = `INSERT INTO reservation (user_id,product_id,quantity) VALUES($1,$2,$3)`
-        const values = [userId,id,amount]
+        const query = `INSERT INTO reservation (user_id, product_id, quantity, pickup_date, pickup_hour) VALUES($1,$2,$3,$4,$5)`
+        const values = [userId,id,quantity,date,reservationHour]
         await client.query(query,values);
         await client.end();
     }catch(error){

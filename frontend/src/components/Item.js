@@ -5,14 +5,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from 'react'
 import ApiClient from "../api"
 import { Trash2 } from 'lucide-react'
+import BookingModal from "@/components/ui/booking-modal"
 
 export default function Item({ product, isAdmin, onDelete}) {
   const [quantity, setQuantity] = useState(1)
   const [booking, setBooking] = useState(false)
+  const [showModal, setShowModal] = useState(false)
   const { toast } = useToast()
   const apiClient = new ApiClient(toast)
 
-  const handleBook = async () => {
+  /*const handleBook = async () => {
     setBooking(true)
     // Simulate API call for booking
     setBooking(false)
@@ -23,7 +25,41 @@ export default function Item({ product, isAdmin, onDelete}) {
       title: "Booking Successful",
       description: `You have booked ${quantity} ${quantity > 1 ? 'units' : 'unit'} of ${product.name}`
     })
+  }*/
+
+  const handleBook = () => {
+    setShowModal(true)
   }
+  
+  const handleConfirmBooking = async (selectedDate, selectedTime, selectedQuantity) => {
+    setBooking(true);
+    setShowModal(false);
+  
+    try {
+      const result = await apiClient.bookProduct(product.id, {
+        quantity: selectedQuantity,
+        date: selectedDate,
+        time: selectedTime,
+      });
+  
+      if (result.error) {
+        throw new Error(result.error.message || "An error occurred while booking the product.");
+      }
+  
+      toast({
+        title: "Booking Successful",
+        description: `You have booked ${selectedQuantity} ${selectedQuantity > 1 ? 'units' : 'unit'} of ${product.name}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Booking Failed",
+        description: error.message,
+        status: "error",
+      });
+    } finally {
+      setBooking(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (window.confirm(`Are you sure you want to delete ${product.name}?`)) {
@@ -89,6 +125,12 @@ export default function Item({ product, isAdmin, onDelete}) {
           </Button>
         </div>
       </div>
+      <BookingModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={handleConfirmBooking} // Pass the booking handler
+        maxQuantity={product.stock}
+      />
     </div>
   )
 }
