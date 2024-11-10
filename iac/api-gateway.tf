@@ -9,7 +9,7 @@ module "product_api_gateway" {
   "bookProduct"               = { function_name = "bookProduct",               route_key = "POST /products/{id}/bookings",  requires_admin = false, requires_auth = true }
   "deleteProduct"             = { function_name = "deleteProduct",             route_key = "DELETE /products/{id}",         requires_admin = true,  requires_auth = true }
   "getAllProducts"            = { function_name = "getAllProducts",            route_key = "GET /products",                 requires_admin = false, requires_auth = false }
-  "getBookings"               = { function_name = "getBookings",               route_key = "GET /bookings",                 requires_admin = true,  requires_auth = true }
+  "getBookings"               = { function_name = "getBookings",               route_key = "GET /bookings",                 requires_admin = false,  requires_auth = true }
   "redirectLambda"            = { function_name = "redirectLambda",            route_key = "GET /front",                    requires_admin = false, requires_auth = false }
   }
   cognito_user_pool_id = aws_cognito_user_pool.product_users.id

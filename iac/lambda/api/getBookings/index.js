@@ -1,5 +1,6 @@
 const { Client } = require('pg');
 const AWS = require('aws-sdk'); 
+const jwt = require('jsonwebtoken');
 
 class SecretsManager {
     
@@ -62,18 +63,42 @@ exports.handler = async (event) => {
         database: process.env.DB_NAME,
     });
 
+    const token = event.headers.Authorization || event.headers.authorization;
+    if (!token) {
+        return {
+            statusCode: 401,
+            body: JSON.stringify({ message: "Authorization token is required" }),
+        };
+    }
+        
+    const decodedToken = jwt.decode(token.replace('Bearer ', ''));
+        
+    var isAdmin = false;
+    if (decodedToken && decodedToken.scope && decodedToken.scope.includes('product-admins')) {
+        isAdmin = true
+    }
+
     await client.connect();
 
     try {
-        const query = `SELECT * FROM reservation`;
-        const result = await client.query(query);
+        var query;
+        var result;
+        if (isAdmin){
+            query = `SELECT * FROM reservation`;
+            result = await client.query(query);
+        }
+        else {
+            const userId = event.requestContext.accountId
+            query = `SELECT * FROM reservation WHERE user_id = $1`;
+            result = await client.query(query,[userId]);
+        }
         await client.end();
 
         return {
             statusCode: 200,
             body: JSON.stringify({
                 message: "Bookings retrieved successfully",
-                products: result.rows
+                bookings: result.rows
             }),
         };
     } catch (error) {
