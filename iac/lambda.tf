@@ -36,7 +36,7 @@ resource "aws_lambda_function" "api_action" {
 
   role = local.lab_role_arn // usamos LabRole porque no podemos crear roles o adjuntar policies
 
-  timeout = 30
+  timeout = 900
 
   environment {
     variables = {
@@ -48,6 +48,7 @@ resource "aws_lambda_function" "api_action" {
       REGION  = var.region
       IMAGES_BUCKET = aws_s3_bucket.item_images.id
       WEBSITE_URL = module.web_app_1.website_url
+      RESERVATION_DONE_SNS_TOPIC_ARN = aws_sns_topic.reservation_done.arn
     }
   }
 
@@ -70,6 +71,21 @@ resource "aws_lambda_function" "preauth_token" {
   source_code_hash = data.archive_file.auth_lambda.output_base64sha256
 }
 
+# Lambda Function for confirmation booking email
+resource "aws_lambda_function" "confirmation_booking_email" {
+  function_name = "confirmation_booking_email"
+  filename      = "lambda/email/bookProductEmail.zip"  
+  handler       = "index.handler"           
+  runtime       = "nodejs16.x"              
+  role             = local.lab_role_arn
+  source_code_hash = data.archive_file.confirmation_booking_email_lambda.output_base64sha256
+  environment {
+    variables = {
+      SENDGRID_API_KEY = var.sendgrid_api_key,
+      SENDGRID_FROM_VERIFIED_EMAIL = var.sendgrid_from_verified_email
+    }
+  }
+}
 
 resource "aws_security_group" "lambda_sg" {
   name        = "lambda-security-group"

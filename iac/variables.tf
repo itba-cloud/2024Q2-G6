@@ -38,6 +38,17 @@ variable "google_auth_client_secret" {
   sensitive   = true
 }
 
+variable "sendgrid_api_key" {
+  description = "Sendgrid api key"
+  type        = string
+  sensitive   = true
+}
+
+variable "sendgrid_from_verified_email" {
+  description = "Sender of the notifications email"
+  type        = string
+}
+
 variable "vpc_name" {
   description = "Name of the VPC"
   type        = string

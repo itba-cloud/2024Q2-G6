@@ -1,6 +1,13 @@
 const { Client } = require('pg');
 const { jwtDecode } = require('jwt-decode')
 const AWS = require('aws-sdk'); 
+AWS.config.update({ region: process.env.REGION });
+const sns = new AWS.SNS({
+    httpOptions: {
+      timeout: 3000, // Timeout in milliseconds (3 seconds)
+    },
+  });
+const snsTopicArn = process.env.RESERVATION_DONE_SNS_TOPIC_ARN;
 
 class SecretsManager {
     
@@ -48,7 +55,6 @@ class SecretsManager {
     
 }
 
-
 exports.handler = async (event) => {
     var secretName = process.env.SECRET_NAME;
     var region = process.env.REGION;
@@ -86,10 +92,10 @@ exports.handler = async (event) => {
 
     await client.connect();
 
+    const decoded = jwtDecode(event.headers.authorization.split(' ')[1])
     try {
         const query = `SELECT * FROM users where id = $1`;
         const result = await client.query(query,[userId]);
-        const decoded = jwtDecode(event.headers.authorization.split(' ')[1])
         const email = decoded.email
         const email_verified = decoded.email_verified
         if (result.rowCount === 0) {
@@ -192,7 +198,41 @@ exports.handler = async (event) => {
             body: JSON.stringify({ message: "Error booking product.", error: error.message }),
         };
     }
-    
+
+    const userEmail = decoded.email;
+
+    // Construct the SNS message payload with structured booking details
+    const snsMessage = JSON.stringify({
+        subject: "New Product Booking",
+        recipient: userEmail,
+        bookingDetails: {
+            userId: userId,
+            productId: id,
+            quantity: quantity,
+            pickupDate: date,
+            pickupHour: reservationHour,
+        },
+    });
+
+    // Set up SNS publish parameters
+    const params = {
+        Message: snsMessage,
+        TopicArn: snsTopicArn,
+        Subject: "Booking Confirmation",
+    };
+
+    // Publish message to SNS and handle success or error
+    await sns.publish(params).promise()
+        .then((data) => {
+            console.log(`Message sent to SNS topic ${snsTopicArn}`);
+            console.log("MessageID:", data.MessageId);
+        })
+        .catch((err) => {
+            console.error("Error sending message to SNS:", err);
+            throw new Error("SNS Publish Error");
+        });
+
+
     return {
         statusCode: 200,
         body: JSON.stringify({ message: "Succesfull booking of product" }),

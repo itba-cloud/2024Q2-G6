@@ -4,6 +4,12 @@ data "archive_file" "schema_lambda" {
   output_path = "lambda/schema/generate_schema.zip"
 }
 
+data "archive_file" "confirmation_booking_email_lambda" {
+  type        = "zip"
+  source_dir  = "lambda/email/bookProductEmail"
+  output_path = "lambda/email/bookProductEmail.zip"
+}
+
 data "archive_file" "auth_lambda" {
   type        = "zip"
   source_dir  = "lambda/auth/preauth_token"
