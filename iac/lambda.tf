@@ -12,7 +12,8 @@ resource "aws_lambda_function" "schema_action" {
       DB_PORT     = "5432"
       DB_NAME     = var.db_name
       DB_USER     = var.db_user
-      DB_PASSWORD = random_password.db_password.result
+      SECRET_NAME = aws_secretsmanager_secret.db_credentials.name
+
     }
   }
 
@@ -79,6 +80,50 @@ resource "aws_lambda_function" "confirmation_booking_email" {
   runtime       = "nodejs16.x"              
   role             = local.lab_role_arn
   source_code_hash = data.archive_file.confirmation_booking_email_lambda.output_base64sha256
+  environment {
+    variables = {
+      SENDGRID_API_KEY = var.sendgrid_api_key,
+      SENDGRID_FROM_VERIFIED_EMAIL = var.sendgrid_from_verified_email
+    }
+  }
+}
+
+# Lambda Function for daily check of reservations
+resource "aws_lambda_function" "notify_daily_reservations" {
+  function_name = "notify_daily_reservations"
+  filename      = "lambda/email/notifyDailyReservations.zip"  
+  handler       = "index.handler"           
+  runtime       = "nodejs16.x"              
+  role             = local.lab_role_arn
+  source_code_hash = data.archive_file.notify_daily_reservations_lambda.output_base64sha256
+  
+  environment {
+    variables = {
+      DB_HOST     = aws_rds_cluster.aurora.endpoint
+      DB_PORT     = "5432"
+      DB_NAME     = var.db_name
+      DB_USER     = var.db_user
+      SECRET_NAME = aws_secretsmanager_secret.db_credentials.name
+      REGION  = var.region
+      WEBSITE_URL = module.web_app_1.website_url
+      PICKUP_DATE_TODAY_TOPIC = aws_sns_topic.pickup_date_today.arn
+    }
+  }
+
+  vpc_config {
+    subnet_ids         = aws_db_subnet_group.lambda.subnet_ids
+    security_group_ids = [aws_security_group.lambda_sg.id]
+  }
+}
+
+# Lambda Function for notification booking day
+resource "aws_lambda_function" "pickup_date_today_email" {
+  function_name = "pickup_date_today_email"
+  filename      = "lambda/email/pickupDateTodayEmail.zip"  
+  handler       = "index.handler"           
+  runtime       = "nodejs16.x"              
+  role             = local.lab_role_arn
+  source_code_hash = data.archive_file.pickup_date_today_email_lambda.output_base64sha256
   environment {
     variables = {
       SENDGRID_API_KEY = var.sendgrid_api_key,
