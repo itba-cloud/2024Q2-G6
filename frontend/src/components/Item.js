@@ -5,12 +5,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from 'react'
 import ApiClient from "../api"
 import { Trash2 } from 'lucide-react'
-import BookingModal from "@/components/ui/booking-modal"
+import { Label } from "@/components/ui/label"
+
 
 export default function Item({ product, isAdmin, onDelete}) {
   const [quantity, setQuantity] = useState(1)
   const [booking, setBooking] = useState(false)
   const [showModal, setShowModal] = useState(false)
+  const [showBookingForm, setShowBookingForm] = useState(false)
+  const [bookingDate, setBookingDate] = useState('')
+  const [bookingTime, setBookingTime] = useState('')
   const { toast } = useToast()
   const apiClient = new ApiClient(toast)
 
@@ -31,15 +35,15 @@ export default function Item({ product, isAdmin, onDelete}) {
     setShowModal(true)
   }
   
-  const handleConfirmBooking = async (selectedDate, selectedTime, selectedQuantity) => {
+  const handleConfirmBooking = async (e) => {
+    e.preventDefault()
     setBooking(true);
-    setShowModal(false);
   
     try {
       const result = await apiClient.bookProduct(product.id, {
-        quantity: selectedQuantity,
-        date: selectedDate,
-        time: selectedTime,
+        quantity: quantity,
+        date: bookingDate,
+        time: bookingTime,
       });
   
       if (result.error) {
@@ -48,7 +52,7 @@ export default function Item({ product, isAdmin, onDelete}) {
   
       toast({
         title: "Booking Successful",
-        description: `You have booked ${selectedQuantity} ${selectedQuantity > 1 ? 'units' : 'unit'} of ${product.name}`,
+        description: `You have booked ${quantity} ${quantity > 1 ? 'units' : 'unit'} of ${product.name}`,
       });
     } catch (error) {
       toast({
@@ -107,7 +111,7 @@ export default function Item({ product, isAdmin, onDelete}) {
           </span>
         </div>
         <div className="flex items-center space-x-2 mb-4">
-          <Input
+          {showBookingForm ?  <></> : <Input
             type="number"
             min="1"
             max={product.stock}
@@ -115,22 +119,71 @@ export default function Item({ product, isAdmin, onDelete}) {
             onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, parseInt(e.target.value) || 1)))}
             disabled={product.stock === 0}
             className="w-20"
-          />
-          <Button 
+          />}
+          {/* <Button 
             className="flex-grow bg-black" 
             disabled={product.stock === 0 || booking}
             onClick={handleBook}
           >
             {booking ? 'Booking...' : (product.stock > 0 ? 'Book Now' : 'Out of Stock')}
+          </Button> */}
+{!showBookingForm ? (
+          <Button 
+            className="w-full bg-black" 
+            disabled={product.stock === 0}
+            onClick={() => setShowBookingForm(true)}
+          >
+            {product.stock > 0 ? 'Book Now' : 'Out of Stock'}
           </Button>
+        ) : (
+          <form onSubmit={handleBook} className="space-y-4 flex-grow">
+            <div>
+              <Label htmlFor={`quantity-${product.id}`}>Quantity</Label>
+              <Input
+                id={`quantity-${product.id}`}
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, parseInt(e.target.value) || 1)))}
+                min="1"
+                max={product.stock}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor={`bookingDate-${product.id}`}>Date</Label>
+              <Input
+                id={`bookingDate-${product.id}`}
+                type="date"
+                value={bookingDate}
+                onChange={(e) => setBookingDate(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor={`bookingTime-${product.id}`}>Time</Label>
+              <Input
+                id={`bookingTime-${product.id}`}
+                type="time"
+                value={bookingTime}
+                onChange={(e) => setBookingTime(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex space-x-2">
+              <Button onClick={handleConfirmBooking} type="submit" variant="outline" className={"flex-1 bg-green-900 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-primary disabled:text-white"} disabled={!bookingDate || !bookingTime}>Confirm Booking</Button>
+              <Button type="button" variant="outline" onClick={() => setShowBookingForm(false)} className="flex-1 bg-slate-600">Cancel</Button>
+            </div>
+          </form>
+        )}
         </div>
       </div>
-      <BookingModal
+      {/* <BookingModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onConfirm={handleConfirmBooking} // Pass the booking handler
         maxQuantity={product.stock}
-      />
+      /> */}
+      
     </div>
   )
 }

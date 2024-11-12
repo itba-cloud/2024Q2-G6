@@ -27,7 +27,7 @@ export default function AdminPage() {
     async function fetchBookings() {
       try {
         const data = await apiClient.getBookings()
-        setBookings(data.data.products)
+        setBookings(data.data.boookings)
         setLoading(false)
       } catch (err) {
         setError('Failed to fetch bookings')
