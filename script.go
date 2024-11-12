@@ -108,6 +108,13 @@ func installLambdaDependencies() error {
 		os.Exit(1)
 	}
 
+	lambdasDir = "./iac/lambda/email"
+
+	if err := installDependenciesInTopLevelDirs(lambdasDir); err != nil {
+		fmt.Printf("Error: %v\n", err)
+		os.Exit(1)
+	}
+
 	fmt.Println("Dependencies installed successfully in all subdirectories.")
 
 	return nil
