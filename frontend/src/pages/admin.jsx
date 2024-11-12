@@ -27,7 +27,10 @@ export default function AdminPage() {
     async function fetchBookings() {
       try {
         const data = await apiClient.getBookings()
-        setBookings(data.data.boookings)
+        if (data.error) {
+            return
+        }
+        setBookings(data.data.bookings)
         setLoading(false)
       } catch (err) {
         setError('Failed to fetch bookings')
@@ -59,10 +62,10 @@ export default function AdminPage() {
           {bookings.map((booking) => (
             <TableRow key={booking.id}>
               <TableCell>{booking.id}</TableCell>
-              <TableCell>{booking.productId}</TableCell>
-              <TableCell>{booking.userId}</TableCell>
+              <TableCell>{booking.product_id}</TableCell>
+              <TableCell>{booking.user_id}</TableCell>
               <TableCell>{booking.quantity}</TableCell>
-              <TableCell>{booking.reservationDate}</TableCell>
+              <TableCell>{booking.reservation_date}</TableCell>
               <TableCell>{booking.status}</TableCell>
             </TableRow>
           ))}
