@@ -8,7 +8,7 @@ module "product_api_gateway" {
   "addProductImage"           = { function_name = "addProductImage",           route_key = "PUT /products/{id}/image",      requires_admin = false, requires_auth = true }
   "bookProduct"               = { function_name = "bookProduct",               route_key = "POST /products/{id}/bookings",  requires_admin = false, requires_auth = true }
   "deleteBooking"             = { function_name = "deleteBooking",             route_key = "DELETE /bookings/{id}",         requires_admin = false, requires_auth = true }
-  "retireBooking"             = { function_name = "retireBooking",             route_key = "PUT /bookings/{id}",         requires_admin = true, requires_auth = true }
+  "retireBooking"             = { function_name = "retireBooking",             route_key = "PUT /bookings/{id}",            requires_admin = true, requires_auth = true }
   "deleteProduct"             = { function_name = "deleteProduct",             route_key = "DELETE /products/{id}",         requires_admin = true,  requires_auth = true }
   "getAllProducts"            = { function_name = "getAllProducts",            route_key = "GET /products",                 requires_admin = false, requires_auth = false }
   "getBookings"               = { function_name = "getBookings",               route_key = "GET /bookings",                 requires_admin = false,  requires_auth = true }
