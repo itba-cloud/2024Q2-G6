@@ -9,6 +9,7 @@ const sns = new AWS.SNS({
   });
 const snsBookingTopicArn = process.env.RESERVATION_DONE_SNS_TOPIC_ARN;
 const snsOutOfStockTopicArn = process.env.OUT_OF_STOCK_SNS_TOPIC_ARN;
+const minimum_stock_to_notify = 5
 
 class SecretsManager {
     
@@ -232,7 +233,7 @@ exports.handler = async (event) => {
             throw new Error("SNS Publish Error");
         });
 
-    if( stock-quantity == 0){
+    if( stock-quantity <= minimum_stock_to_notify){
         var emails_result
         try{
             const query = `SELECT email FROM users where role = $1`;
