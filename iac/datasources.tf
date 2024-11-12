@@ -16,6 +16,12 @@ data "archive_file" "confirmation_booking_email_lambda" {
   output_path = "lambda/email/bookProductEmail.zip"
 }
 
+data "archive_file" "out_of_stock_email_lambda" {
+  type        = "zip"
+  source_dir  = "lambda/email/outOfStockEmail"
+  output_path = "lambda/email/outOfStockEmail.zip"
+}
+
 data "archive_file" "pickup_date_today_email_lambda" {
   type        = "zip"
   source_dir  = "lambda/email/pickupDateTodayEmail"

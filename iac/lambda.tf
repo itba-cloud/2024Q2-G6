@@ -50,6 +50,7 @@ resource "aws_lambda_function" "api_action" {
       IMAGES_BUCKET = aws_s3_bucket.item_images.id
       WEBSITE_URL = module.web_app_1.website_url
       RESERVATION_DONE_SNS_TOPIC_ARN = aws_sns_topic.reservation_done.arn
+      OUT_OF_STOCK_SNS_TOPIC_ARN = aws_sns_topic.out_of_stock.arn
     }
   }
 
@@ -80,6 +81,22 @@ resource "aws_lambda_function" "confirmation_booking_email" {
   runtime       = "nodejs16.x"              
   role             = local.lab_role_arn
   source_code_hash = data.archive_file.confirmation_booking_email_lambda.output_base64sha256
+  environment {
+    variables = {
+      SENDGRID_API_KEY = var.sendgrid_api_key,
+      SENDGRID_FROM_VERIFIED_EMAIL = var.sendgrid_from_verified_email
+    }
+  }
+}
+
+# Lambda Function for confirmation booking email
+resource "aws_lambda_function" "out_of_stock_email" {
+  function_name = "out_of_stock_email"
+  filename      = "lambda/email/outOfStockEmail.zip"  
+  handler       = "index.handler"           
+  runtime       = "nodejs16.x"              
+  role             = local.lab_role_arn
+  source_code_hash = data.archive_file.out_of_stock_email_lambda.output_base64sha256
   environment {
     variables = {
       SENDGRID_API_KEY = var.sendgrid_api_key,

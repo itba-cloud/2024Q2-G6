@@ -7,7 +7,8 @@ const sns = new AWS.SNS({
       timeout: 3000, // Timeout in milliseconds (3 seconds)
     },
   });
-const snsTopicArn = process.env.RESERVATION_DONE_SNS_TOPIC_ARN;
+const snsBookingTopicArn = process.env.RESERVATION_DONE_SNS_TOPIC_ARN;
+const snsOutOfStockTopicArn = process.env.OUT_OF_STOCK_SNS_TOPIC_ARN;
 
 class SecretsManager {
     
@@ -144,7 +145,7 @@ exports.handler = async (event) => {
             body: JSON.stringify({ message: "Quantity can not be zero or a negative value" }),
         };
     }
-
+    var stock;
     try {
         const query = `SELECT stock FROM product where id = $1`;
         const result = await client.query(query,[id]);
@@ -190,7 +191,6 @@ exports.handler = async (event) => {
         const query = `INSERT INTO reservation (user_id, product_id, quantity, pickup_date, pickup_hour) VALUES($1,$2,$3,$4,$5)`
         const values = [userId,id,quantity,date,reservationHour]
         await client.query(query,values);
-        await client.end();
     }catch(error){
         await client.end();
         return {
@@ -217,14 +217,14 @@ exports.handler = async (event) => {
     // Set up SNS publish parameters
     const params = {
         Message: snsMessage,
-        TopicArn: snsTopicArn,
+        TopicArn: snsBookingTopicArn,
         Subject: "Booking Confirmation",
     };
 
     // Publish message to SNS and handle success or error
     await sns.publish(params).promise()
         .then((data) => {
-            console.log(`Message sent to SNS topic ${snsTopicArn}`);
+            console.log(`Message sent to SNS topic ${snsBookingTopicArn}`);
             console.log("MessageID:", data.MessageId);
         })
         .catch((err) => {
@@ -232,9 +232,53 @@ exports.handler = async (event) => {
             throw new Error("SNS Publish Error");
         });
 
-
+    if( stock-quantity == 0){
+        var emails_result
+        try{
+            const query = `SELECT email FROM users where role = $1`;
+            emails_result = await client.query(query,[1]);
+            await client.end();
+        }catch(error){
+            await client.end();
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ message: "Error booking product.", error: error.message }),
+            };
+        }
+        if (emails_result.rowCount > 0) {
+            for(const row of emails_result.rows){
+                const snsMessageOutOfStock = JSON.stringify({
+                    subject: "Product out of stock",
+                    recipient: row.email,
+                    productDetails: {
+                        productId: id
+                    },
+                });
+    
+                // Set up SNS publish parameters
+                const paramsOutOfStock = {
+                    Message: snsMessageOutOfStock,
+                    TopicArn: snsOutOfStockTopicArn,
+                    Subject: "Product out of stock",
+                };
+    
+                // Publish message to SNS and handle success or error
+                await sns.publish(paramsOutOfStock).promise()
+                    .then((data) => {
+                        console.log(`Message sent to SNS topic ${snsOutOfStockTopicArn}`);
+                        console.log("MessageID:", data.MessageId);
+                    })
+                    .catch((err) => {
+                        console.error("Error sending message to SNS:", err);
+                        throw new Error("SNS Publish Error");
+                    });
+            }
+        }
+        // Construct the SNS message payload with structured booking details
+        
+    }
     return {
-        statusCode: 200,
-        body: JSON.stringify({ message: "Succesfull booking of product" }),
+    statusCode: 200,
+    body: JSON.stringify({ message: "Succesfull booking of product" }),
     };
 };
