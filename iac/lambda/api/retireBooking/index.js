@@ -76,7 +76,7 @@ exports.handler = async (event) => {
     await client.connect();
 
     try {
-        const query = `UPDATE reservation SET status = 'RETIRED' WHERE id = $1 RETURNING *`;
+        const query = `UPDATE reservation SET status = 'COLLECTED' WHERE id = $1 RETURNING *`;
         const result = await client.query(query, [bookingId]);
 
         await client.end();
@@ -91,7 +91,7 @@ exports.handler = async (event) => {
         return {
             statusCode: 200,
             body: JSON.stringify({
-                message: "Booking retired successfully",
+                message: "Booking updated successfully",
                 updatedBooking: result.rows[0]
             }),
         };

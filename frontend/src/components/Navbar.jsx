@@ -12,7 +12,7 @@ import {
 
 
 
-export default function Navbar({ logoutFun, isLogged }) {
+export default function Navbar({ logoutFun, isLogged, isAdmin }) {
   return (
     <nav className="bg-background border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -25,7 +25,7 @@ export default function Navbar({ logoutFun, isLogged }) {
               <div className="ml-10 flex items-baseline space-x-4">
                 <Link href="/" className="text-foreground hover:bg-accent hover:text-accent-foreground px-3 py-2 rounded-md text-sm font-medium">Products</Link>
                 <Link href="/about" className="text-foreground hover:bg-accent hover:text-accent-foreground px-3 py-2 rounded-md text-sm font-medium">About</Link>
-                <Link href="/admin" className="text-foreground hover:bg-accent hover:text-accent-foreground px-3 py-2 rounded-md text-sm font-medium">Admin</Link>
+                {isAdmin ? <Link href="/bookings" className="text-foreground hover:bg-accent hover:text-accent-foreground px-3 py-2 rounded-md text-sm font-medium">Bookings</Link> : <></>}
                 <Link href="/contact" className="text-foreground hover:bg-accent hover:text-accent-foreground px-3 py-2 rounded-md text-sm font-medium">Contact</Link>
               </div>
             </div>
@@ -37,11 +37,11 @@ export default function Navbar({ logoutFun, isLogged }) {
                 Logout
               </Button>
             ) : (
-              <Link href={LOGIN_URL} target="_blank" rel="noopener noreferrer">
+              <a href={LOGIN_URL}>
                 <Button variant="outline" className="text-foreground border-foreground hover:bg-accent hover:text-accent-foreground">
                   Login
                 </Button>
-              </Link>
+              </a>
             )}
           </div>
         </div>

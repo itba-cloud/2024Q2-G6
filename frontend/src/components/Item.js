@@ -7,6 +7,7 @@ import ApiClient from "../api"
 import { Trash2, Edit, Image as ImageIcon } from "lucide-react";
 import { Label } from "@/components/ui/label"
 import NewProductForm from "./NewProductForm";
+import { Badge } from "@/components/ui/badge"
 
 
 export default function Item({ product, isAdmin, onDelete, setRefresh}) {
@@ -19,7 +20,6 @@ export default function Item({ product, isAdmin, onDelete, setRefresh}) {
   const [isEditingContent, setIsEditingContent] = useState(false);
   const { toast } = useToast()
   const apiClient = new ApiClient(toast)
-  const fileInputRef = useRef(null);  
  
 
   const handleBook = () => {
@@ -71,7 +71,8 @@ export default function Item({ product, isAdmin, onDelete, setRefresh}) {
         productName: p.productName,
         productPrice: p.productPrice,
         productStockAmount: p.productStockAmount,
-        productDescription: p.productDescription
+        productDescription: p.productDescription,
+        productCategories: p.productCategories
     }
     const resp = await apiClient.updateProduct(prod, product.id)
 
@@ -122,6 +123,11 @@ export default function Item({ product, isAdmin, onDelete, setRefresh}) {
       <div className="p-4">
         <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
         <p className="text-gray-300 mb-2">{product.description}</p>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {(product.categories).map((category, index) => (
+            <Badge className="p-1 rounded-full bg-slate-200 text-gray-800" key={index}>{category}</Badge>
+          ))}
+        </div>
         <div className="flex justify-between items-center mb-4">
           <span className="text-lg font-bold">${product.price}</span>
           <span
@@ -133,22 +139,6 @@ export default function Item({ product, isAdmin, onDelete, setRefresh}) {
           </span>
         </div>
         <div className="flex items-center space-x-2 mb-4">
-          {showBookingForm ?  <></> : <Input
-            type="number"
-            min="1"
-            max={product.stock}
-            value={quantity}
-            onChange={(e) =>
-              setQuantity(
-                Math.max(
-                  1,
-                  Math.min(product.stock, parseInt(e.target.value) || 1)
-                )
-              )
-            }
-            disabled={product.stock === 0}
-            className="w-20"
-          />}
           {/* <Button 
             className="flex-grow bg-black" 
             disabled={product.stock === 0 || booking}

@@ -73,6 +73,10 @@ class ApiClient {
     return await this.request("POST", `/products/${id}/bookings`, data);
   }
 
+  async completeBooking(id) {
+    return await this.request("PUT", `/bookings/${id}`);
+  }
+
   async deleteProduct(id) {
     return await this.request("DELETE", `/products/${id}`);
   }

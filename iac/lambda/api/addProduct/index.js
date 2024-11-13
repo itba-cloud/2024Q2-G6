@@ -70,12 +70,12 @@ exports.handler = async (event) => {
     }
     const body = JSON.parse(event.body);
 
-    const { productName, productPrice, productStockAmount, productDescription} = body;
+    const { productName, productPrice, productStockAmount, productDescription, productCategories} = body;
 
-    if (!productName || !productPrice || !productStockAmount || !productDescription ){
+    if (!productName || !productPrice || !productStockAmount || !productDescription || !productCategories ){
         return {
             statusCode: 400,
-            body: JSON.stringify({ message: "Fields productName, productPrice y productStockAmount are mandatory" }),
+            body: JSON.stringify({ message: "Fields productName, productPrice, productStockAmount and productCategories are mandatory" }),
         };
     }
     if ( productName == "" || productPrice <= 0 || productStockAmount <= 0 ){
@@ -88,8 +88,8 @@ exports.handler = async (event) => {
     await client.connect();
 
     try{
-        const query = `INSERT INTO product (name,price,stock,description, image_url) VALUES($1,$2,$3,$4,$5) RETURNING id`
-        const values = [productName,productPrice,productStockAmount,productDescription, "https://pbs.twimg.com/profile_images/1475829463766249473/rltJ5_u3_400x400.jpg"]
+        const query = `INSERT INTO product (name,price,stock,description,image_url,categories) VALUES($1,$2,$3,$4,$5,$6) RETURNING id`
+        const values = [productName,productPrice,productStockAmount,productDescription,"https://pbs.twimg.com/profile_images/1475829463766249473/rltJ5_u3_400x400.jpg",productCategories]
         const result = await client.query(query,values);
         await client.end();
 

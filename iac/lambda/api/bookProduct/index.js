@@ -53,8 +53,6 @@ class SecretsManager {
         }
     }
     
-     
-    
 }
 
 exports.handler = async (event) => {

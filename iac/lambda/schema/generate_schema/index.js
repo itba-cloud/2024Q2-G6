@@ -78,7 +78,8 @@ exports.handler = async (event) => {
                 price numeric(10,2)  NOT NULL,
                 stock int  NOT NULL CHECK (stock >= 0),
                 description varchar(1000)  NOT NULL,
-                image_url varchar(256)
+                image_url varchar(256),
+                categories TEXT[]
             );
             
              CREATE TABLE users(
@@ -108,10 +109,10 @@ exports.handler = async (event) => {
             ON CONFLICT (username) DO NOTHING;
 
             -- Insert two products into the 'product' table
-            INSERT INTO product (name, price, stock, description, image_url)
+            INSERT INTO product (name, price, stock, description, image_url, categories)
             VALUES 
-                ('Product 1', 29.99, 100, 'Description for Product 1', 'https://img.freepik.com/free-photo/organic-cosmetic-product-with-dreamy-aesthetic-fresh-background_23-2151382816.jpg?semt=ais_hybrid'),
-                ('Product 2', 49.99, 50, 'Description for Product 2', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cHJvZHVjdHxlbnwwfHwwfHx8MA%3D%3D');
+                ('Product 1', 29.99, 100, 'Description for Product 1', 'https://img.freepik.com/free-photo/organic-cosmetic-product-with-dreamy-aesthetic-fresh-background_23-2151382816.jpg?semt=ais_hybrid', '{"beauty", "fashion"}'),
+                ('Product 2', 49.99, 50, 'Description for Product 2', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cHJvZHVjdHxlbnwwfHwwfHx8MA%3D%3D', '{"electronics", "sports"}');
         END $$;
     `;
 

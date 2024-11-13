@@ -20,7 +20,7 @@ export default function App({ Component, pageProps }) {
     setToken(null)
     setIsLoggedIn(false)
     setIsAdmin(false)
-    localStorage.setItem('jwtToken', null)
+    localStorage.removeItem('jwtToken')
   }
 
   useEffect(() => {
@@ -78,7 +78,7 @@ export default function App({ Component, pageProps }) {
 
   return <>
       <div className='w-full min-h-screen flex flex-col'>
-    <Navbar isLogged={isLoggedIn} logoutFun={logoutFun}/>
+    <Navbar isLogged={isLoggedIn} isAdmin={isAdmin} logoutFun={logoutFun}/>
     <main className='w-full flex-1 bg-slate-800'>
     
     <Component {...pageProps} isLogged={isLoggedIn} isAdmin={isAdmin} />

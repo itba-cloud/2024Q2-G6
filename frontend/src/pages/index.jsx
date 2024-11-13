@@ -3,8 +3,10 @@ import Item from '@components/Item'
 import NewProductForm from '@components/NewProductForm'
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
+import { Checkbox } from '@/components/ui/checkbox'
 import ApiClient from "../api"
-import { RefreshCcw } from 'lucide-react'
+import { Label } from '@/components/ui/label'
+
 
 export default function HomePage({isLogged, isAdmin}) {
   const [products, setProducts] = useState([])
@@ -12,6 +14,7 @@ export default function HomePage({isLogged, isAdmin}) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showNewProductForm, setShowNewProductForm] = useState(false)
+  const [selectedCategories, setSelectedCategories] = useState([])
   const { toast } = useToast()
   const apiClient = new ApiClient(toast)
 
@@ -33,6 +36,18 @@ export default function HomePage({isLogged, isAdmin}) {
     fetchProducts()
   }, [refresh])
 
+  const handleCategoryChange = (category) => {
+    setSelectedCategories(prev => 
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    )
+  }
+
+  const filteredProducts = products.filter(product => 
+    selectedCategories.length === 0 || selectedCategories.every(cat => product.categories.includes(cat))
+  )
+
   const handleDeleteProduct = async (id) => {
     const data = await apiClient.deleteProduct(id)
     if (data.error)
@@ -46,7 +61,13 @@ export default function HomePage({isLogged, isAdmin}) {
     const formData = new FormData()
     formData.append('image', productImage)
     const data = await apiClient.addProduct(newProduct)
-    await apiClient.addImage(data.data.id, formData)
+    if (data.error) {
+      return data.error
+    }
+    const data2 = await apiClient.addImage(data.data.id, formData)
+    if (data2.error) {
+      return data2.error
+    }
     setRefresh(!refresh)
     toast({
       title: "Product Added",
@@ -65,9 +86,23 @@ export default function HomePage({isLogged, isAdmin}) {
       {isAdmin ? <Button onClick={() => setShowNewProductForm(!showNewProductForm)} className="mb-6 bg-slate-700">
         {showNewProductForm ? 'Hide New Product Form' : 'Add New Product'}
       </Button> : <></>}
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-4">
+          {[... new Set(products.map(p => p.categories).flat())].map(category => (
+            <div key={category} className="flex items-center space-x-2">
+              <Checkbox
+                id={`category-${category}`}
+                checked={selectedCategories.includes(category)}
+                onCheckedChange={() => handleCategoryChange(category)}
+              />
+              <Label htmlFor={`category-${category}`}>{category}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
       {showNewProductForm && <NewProductForm image={true} onSubmit={handleNewProduct} />}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map(product => (
+        {filteredProducts.map(product => (
           <Item
             key={product.id} 
             product={product} 

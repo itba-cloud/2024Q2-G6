@@ -46,7 +46,6 @@ export default function Footer() {
               <li><Link href="/" className="text-gray-600 hover:text-gray-900">Home</Link></li>
               <li><Link href="/about" className="text-gray-600 hover:text-gray-900">About Us</Link></li>
               <li><Link href="/products" className="text-gray-600 hover:text-gray-900">Products</Link></li>
-              <li><Link href="/contact" className="text-gray-600 hover:text-gray-900">Contact</Link></li>
             </ul>
           </div>
           <div>
@@ -72,7 +71,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-gray-200 text-center">
-          <p className="text-gray-600">&copy; 2023 Our Store. All rights reserved.</p>
+          <p className="text-gray-600">&copy; 2024 PickItUp. All rights reserved.</p>
         </div>
       </div>
     </footer>

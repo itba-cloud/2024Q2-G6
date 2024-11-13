@@ -68,7 +68,7 @@ exports.handler = async (event) => {
 
     const userId = event.requestContext?.accountId
 
-    if (userId) {
+    if (userId && event?.headers?.authorization && event?.headers?.authorization !== 'null' && event?.headers?.authorization.split(' ').length > 1) {
         const decoded = jwtDecode(event.headers.authorization.split(' ')[1])
     try {
         const query = `SELECT * FROM users where id = $1`;

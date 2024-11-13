@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 
 export default function NewProductForm({ onSubmit, product }) {
   const [productName, setProductName] = useState(product ? product.name : '')
@@ -10,6 +11,9 @@ export default function NewProductForm({ onSubmit, product }) {
   const [productStockAmount, setProductStockAmount] = useState(product ? product.stock : '')
   const [productDescription, setProductDescription] = useState(product ? product.description : '')
   const [productImage, setProductImage] = useState(null)
+  const [selectedCategories, setSelectedCategories] = useState(product ? product.categories : [])
+
+  const categories = ['health', 'electronics', 'fashion', 'beauty', 'sports', 'toys']
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -18,20 +22,33 @@ export default function NewProductForm({ onSubmit, product }) {
     }
   };
 
+  const handleCategoryChange = (category) => {
+    setSelectedCategories(prev => 
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    )
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    onSubmit({
+    const error = await onSubmit({
       productName,
       productPrice: parseFloat(productPrice),
       productStockAmount: parseInt(productStockAmount),
-      productDescription
+      productDescription,
+      productCategories: selectedCategories
     }, productImage)
+    if (error) {
+        return
+    }
     // Reset form
     setProductName('')
     setProductPrice('')
     setProductStockAmount('')
     setProductDescription('')
     setProductImage(null)
+    setSelectedCategories([])
   }
 
   return (
@@ -75,6 +92,22 @@ export default function NewProductForm({ onSubmit, product }) {
           required
         />
       </div>
+      <div>
+      <Label>Categories</Label>
+        <div className="mt-2 space-y-2">
+          {categories.map(category => (
+            <div key={category} className="flex items-center space-x-2">
+              <Checkbox 
+                id={`category-${category}`}
+                checked={selectedCategories.includes(category)}
+                onCheckedChange={() => handleCategoryChange(category)}
+              />
+              <Label htmlFor={`category-${category}`}>{category}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
       <Label htmlFor="productImage">Product Image</Label>
         <Input
           id="productImage"
@@ -82,6 +115,7 @@ export default function NewProductForm({ onSubmit, product }) {
           accept="image/*"
           onChange={handleImageChange}
         />
+      </div>
       <Button className="bg-green-800" type="submit">Confirm</Button>
     </form>
   )

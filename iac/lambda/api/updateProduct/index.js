@@ -70,7 +70,7 @@ exports.handler = async (event) => {
 
     // Parse body to retrieve other fields
     const body = event.body ? JSON.parse(event.body) : {};
-    const { productName, productPrice, productStockAmount, productDescription } = body;
+    const { productName, productPrice, productStockAmount, productDescription, productCategories } = body;
 
     await client.connect();
 
@@ -94,14 +94,16 @@ exports.handler = async (event) => {
         const updatedProductPrice = productPrice !== undefined ? productPrice : existingProduct.price;
         const updatedProductStockAmount = productStockAmount !== undefined ? productStockAmount : existingProduct.stock;
         const updatedProductDescription = productDescription || existingProduct.description;
+        const updatedProductCategories = productCategories || existingProduct.categories;
+
 
         const updateQuery = `
             UPDATE product 
-            SET name = $1, price = $2, stock = $3, description = $4 
-            WHERE id = $5 
+            SET name = $1, price = $2, stock = $3, description = $4, categories = $5 
+            WHERE id = $6
             RETURNING id
         `;
-        const values = [updatedProductName, updatedProductPrice, updatedProductStockAmount, updatedProductDescription, id];
+        const values = [updatedProductName, updatedProductPrice, updatedProductStockAmount, updatedProductDescription, updatedProductCategories, id];
         const updateResult = await client.query(updateQuery, values);
 
         await client.end();
