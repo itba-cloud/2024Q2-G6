@@ -6,32 +6,21 @@ import { useState, useRef } from 'react'
 import ApiClient from "../api"
 import { Trash2, Edit, Image as ImageIcon } from "lucide-react";
 import { Label } from "@/components/ui/label"
+import NewProductForm from "./NewProductForm";
 
 
-export default function Item({ product, isAdmin, onDelete}) {
+export default function Item({ product, isAdmin, onDelete, setRefresh}) {
   const [quantity, setQuantity] = useState(1)
   const [booking, setBooking] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [showBookingForm, setShowBookingForm] = useState(false)
   const [bookingDate, setBookingDate] = useState('')
   const [bookingTime, setBookingTime] = useState('')
-  const [isEditingImage, setIsEditingImage] = useState(false);
   const [isEditingContent, setIsEditingContent] = useState(false);
   const { toast } = useToast()
   const apiClient = new ApiClient(toast)
   const fileInputRef = useRef(null);  
-  /*const handleBook = async () => {
-    setBooking(true)
-    // Simulate API call for booking
-    setBooking(false)
-    const result = await apiClient.bookProduct(product.id, product)
-    if (result.error)
-        return
-    toast({
-      title: "Booking Successful",
-      description: `You have booked ${quantity} ${quantity > 1 ? 'units' : 'unit'} of ${product.name}`
-    })
-  }*/
+ 
 
   const handleBook = () => {
     setShowModal(true)
@@ -49,15 +38,9 @@ export default function Item({ product, isAdmin, onDelete}) {
       });
 
       if (result.error) {
-        throw new Error(
-          result.error.message || "An error occurred while booking the product."
-        );
+        return
       }
 
-      toast({
-        title: "Booking Successful",
-        description: `You have booked ${quantity} ${quantity > 1 ? 'units' : 'unit'} of ${product.name}`,
-      });
     } catch (error) {
       toast({
         title: "Booking Failed",
@@ -65,7 +48,7 @@ export default function Item({ product, isAdmin, onDelete}) {
         status: "error",
       });
     } finally {
-      setBooking(false);
+      setShowBookingForm(false);
     }
   };
 
@@ -73,57 +56,37 @@ export default function Item({ product, isAdmin, onDelete}) {
     if (window.confirm(`Are you sure you want to delete ${product.name}?`)) {
       const result = await onDelete(product.id);
       if (result.error) return;
-      toast({
-        title: "Product Deleted",
-        description: `${product.name} has been deleted.`,
-      });
     }
   };
 
-  const handleEditImage = () => {
-    fileInputRef.current.click();
-  };
 
-  const handleFileChange = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setIsEditingImage(true);
-      try {
-        const formData = new FormData();
-        formData.append('image', file, file.name); // Add file.name as the third argument
-        console.log('FormData contents:', formData); // Log FormData contents
-        const result = await onUpdateImage(product.id, formData);
-        if (result.error) {
-          throw new Error(
-            result.error || "An error occurred while updating the image."
-          );
-        }
-        toast({
-          title: "Image Updated",
-          description: "The product image has been successfully updated.",
-        });
-      } catch (error) {
-        console.error('Error updating image:', error); // Log the full error
-        toast({
-          title: "Image Update Failed",
-          description: error.message,
-          status: "error",
-        });
-      } finally {
-        setIsEditingImage(false);
-      }
-    }
-  };
-
-  const handleEditContent = async () => {
-    setIsEditingContent(true);
+  const handleEditContent = async (p) => {
+    setIsEditingContent((v) => !v);
     // Placeholder for content edit functionality
-    toast({
-      title: "Edit Content",
-      description: "Content edit functionality to be implemented.",
-    });
-    setIsEditingContent(false);
+
   };
+
+  const onSubmitEdit = async (p, image) => {
+    const prod = {
+        productName: p.productName,
+        productPrice: p.productPrice,
+        productStockAmount: p.productStockAmount,
+        productDescription: p.productDescription
+    }
+    const resp = await apiClient.updateProduct(prod, product.id)
+
+    if (resp.error) {
+        return
+    }
+
+    if (image) {
+        const formData = new FormData()
+        formData.append('image', image)
+        await apiClient.addImage(product.id, formData)
+    }
+    setIsEditingContent(false);
+    setRefresh(r => !r)
+  }
 
   return (
     <div className="border rounded-lg overflow-hidden shadow-lg bg-slate-700 relative">
@@ -139,17 +102,8 @@ export default function Item({ product, isAdmin, onDelete}) {
             <Button
               size="icon"
               variant="secondary"
-              onClick={handleEditImage}
-              disabled={isEditingImage}
-              aria-label="Edit image"
-            >
-              <ImageIcon className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
               onClick={handleEditContent}
-              disabled={isEditingContent}
+            //   disabled={isEditingContent}
               aria-label="Edit content"
             >
               <Edit className="h-4 w-4" />
@@ -165,14 +119,6 @@ export default function Item({ product, isAdmin, onDelete}) {
           </div>
         )}
       </div>
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        accept="image/*"
-        className="hidden"
-        aria-label="Upload new product image"
-      />
       <div className="p-4">
         <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
         <p className="text-gray-300 mb-2">{product.description}</p>
@@ -266,7 +212,9 @@ export default function Item({ product, isAdmin, onDelete}) {
         onConfirm={handleConfirmBooking}
         maxQuantity={product.stock}
       /> */}
-      
+      {isEditingContent ? <div className="p-3">
+        <NewProductForm product={product} onSubmit={onSubmitEdit}></NewProductForm>
+      </div> : <></>}
     </div>
   );
 }

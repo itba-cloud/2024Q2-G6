@@ -1,5 +1,5 @@
 const { Client } = require('pg');
-
+const { jwtDecode } = require('jwt-decode')
 
 const AWS = require('aws-sdk'); 
 
@@ -65,6 +65,33 @@ exports.handler = async (event) => {
     });
 
     await client.connect();
+
+    const userId = event.requestContext?.accountId
+
+    if (userId) {
+        const decoded = jwtDecode(event.headers.authorization.split(' ')[1])
+    try {
+        const query = `SELECT * FROM users where id = $1`;
+        const result = await client.query(query,[userId]);
+        const email = decoded.email
+        const email_verified = decoded.email_verified
+        if (result.rowCount === 0) {
+            const insertUserQuery = `INSERT INTO users (id, email, role, verified) VALUES($1,$2,$3,$4)`
+            const values = [userId,email, 0, email_verified]
+            await client.query(insertUserQuery,values)
+        }
+        if (decoded["cognito:groups"].includes("product-admins")) {
+            const updateUserQuery = `UPDATE users SET role = 1 WHERE id = $1`
+            await client.query(updateUserQuery,[userId])
+        }
+    } catch(error) {
+        await client.end();
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: "Error updating user details", error: error.message }),
+        };
+    }
+    }
 
     try {
         const query = `SELECT * FROM product`;

@@ -34,17 +34,22 @@ class ApiClient {
         headers: headers ? headers : {"Content-Type": "application/json"},
         data: body,
       });
-
+      if (method != 'GET') {
+        this.toast({
+          title: "Success",
+          description: `${response.data.message}`
+        })
+      }
       return { error: false, data: response.data };
     } catch (error) {
       console.error(error);
       if (this.toast) {
         this.toast({
           title: "Error",
-          description: `${error.message}`
+          description: `${error.response.data ? error.response.data.message : error.message}`
         })
       }
-      return { error: true, data: { message: error.message } };
+      return { error: true, data: { message: error.response.data ? error.response.data.message : error.message } };
     }
   }
 
@@ -58,6 +63,10 @@ class ApiClient {
 
   async addProduct(data) {
     return await this.request("POST", `/products`, data);
+  }
+
+  async updateProduct(data, id) {
+    return await this.request("PUT", `/products/${id}`, data);
   }
 
   async bookProduct(id, data) {

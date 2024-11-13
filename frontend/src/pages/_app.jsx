@@ -7,16 +7,19 @@ import {REDIRECT_URI, LOGIN_CLIENT_ID, AUTH_URL} from 'src/constants'
 import qs from 'qs'
 import axios from 'axios';
 import Footer from '@components/Footer';
+import { jwtDecode } from 'jwt-decode'
 
 
 export default function App({ Component, pageProps }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [token, setToken] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false)
   const router = useRouter();
 
   const logoutFun = () => {
     setToken(null)
     setIsLoggedIn(false)
+    setIsAdmin(false)
     localStorage.setItem('jwtToken', null)
   }
 
@@ -54,6 +57,9 @@ export default function App({ Component, pageProps }) {
                 localStorage.setItem('jwtToken', fetchedToken);
                 setToken(fetchedToken);
                 setIsLoggedIn(true); // Update login state
+                const decoded = jwtDecode(fetchedToken)
+                console.log(decoded)
+                setIsAdmin(decoded["cognito:groups"].includes("product-admins"))
             }
         });
     } else {
@@ -62,17 +68,24 @@ export default function App({ Component, pageProps }) {
         if (storedToken) {
             setToken(storedToken);
             setIsLoggedIn(true); // User is logged in if token exists
+            const decoded = jwtDecode(storedToken)
+            console.log(decoded)
+
+            setIsAdmin(decoded["cognito:groups"].includes("product-admins"))
         }
     }
 }, [router.isReady, router.query]);
 
-  return <div className='w-full min-h-screen flex flex-col'>
+  return <>
+      <div className='w-full min-h-screen flex flex-col'>
     <Navbar isLogged={isLoggedIn} logoutFun={logoutFun}/>
-    <main className='w-full flex-1 flex bg-slate-800'>
-    <Component {...pageProps} isLogged={isLoggedIn} />
+    <main className='w-full flex-1 bg-slate-800'>
+    
+    <Component {...pageProps} isLogged={isLoggedIn} isAdmin={isAdmin} />
     </main>
     <Toaster className='top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4'></Toaster>
     <Footer></Footer>
   </div>
+  </> 
 
 }

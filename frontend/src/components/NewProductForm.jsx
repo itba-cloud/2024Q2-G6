@@ -4,11 +4,11 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 
-export default function NewProductForm({ onSubmit }) {
-  const [productName, setProductName] = useState('')
-  const [productPrice, setProductPrice] = useState('')
-  const [productStockAmount, setProductStockAmount] = useState('')
-  const [productDescription, setProductDescription] = useState('')
+export default function NewProductForm({ onSubmit, product }) {
+  const [productName, setProductName] = useState(product ? product.name : '')
+  const [productPrice, setProductPrice] = useState(product ? product.price : '')
+  const [productStockAmount, setProductStockAmount] = useState(product ? product.stock : '')
+  const [productDescription, setProductDescription] = useState(product ? product.description : '')
   const [productImage, setProductImage] = useState(null)
 
   const handleImageChange = (e) => {
@@ -81,9 +81,8 @@ export default function NewProductForm({ onSubmit }) {
           type="file"
           accept="image/*"
           onChange={handleImageChange}
-          required
         />
-      <Button type="submit">Add Product</Button>
+      <Button className="bg-green-800" type="submit">Confirm</Button>
     </form>
   )
 }
