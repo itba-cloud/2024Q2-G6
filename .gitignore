@@ -1,0 +1,55 @@
+# Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Crash logs
+crash.log
+
+# Terraform variable files (containing secrets)
+*.tfvars.json
+
+# Override files (local configurations)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform plan files (binary data)
+*.tfplan
+
+# Backup files created by Terraform
+*.backup
+
+# Lock files created by Terraform
+.terraform.lock.hcl
+
+# Local Terraform directory (used for plugins, providers, etc.)
+.terraform/
+
+# Sensitive files for credentials and environments
+.env
+.terraformrc
+.terraform.d/
+
+# Ignore editor-specific files (optional, adjust based on your editor)
+# VS Code
+.vscode/
+*.code-workspace
+
+# MacOS
+.DS_Store
+
+# Logs
+*.log
+
+*.zip
+
+.trunk
+
+frontend/out/*
+
+node_modules
+
+package-lock.json
+
+cloud-api
